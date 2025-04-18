@@ -58,29 +58,30 @@ import (
 
 func main() {
 	yamlContent := `
-# Конфигурация
-app:
-  name: MyApp  # Название
-  port: 8080
+# Конфигурация приложения
+name: MyApp  # Название
+hosts:
+  - example.com  # Основной хост
 `
 
-	// Чтение с сохранением комментариев
-	var node yaml.Node
-	err := yaml.Unmarshal([]byte(yamlContent), &node)
-	if err != nil {
-		panic(err)
-	}
-
-	// Изменение данных
+	// 1. Парсим YAML в map (или структуру)
 	var config map[string]interface{}
-	err = yaml.Unmarshal([]byte(yamlContent), &config)
+	err := yaml.Unmarshal([]byte(yamlContent), &config)
 	if err != nil {
 		panic(err)
 	}
-	config["app"].(map[string]interface{})["port"] = 9090
 
-	// Запись обратно с комментариями
-	out, err := yaml.MarshalWithOptions(config, yaml.Indent(2), yaml.WithComment(node))
+	// 2. Добавляем комментарии вручную
+	comment := yaml.Comment{
+		Line:   "  # Добавленный комментарий",
+		Column: 4,
+	}
+
+	// 3. Сериализуем обратно с комментариями
+	out, err := yaml.MarshalWithOptions(config,
+		yaml.WithComment(comment),  // Добавляем комментарий
+		yaml.Indent(2),            // Отступ в 2 пробела
+	)
 	if err != nil {
 		panic(err)
 	}
