@@ -88,3 +88,51 @@ hosts:
 
 	fmt.Println(string(out))
 }
+package main
+
+import (
+	"fmt"
+	"bytes"
+	"github.com/goccy/go-yaml"
+)
+
+func main() {
+	yamlContent := `
+# Главный заголовок
+app:
+  name: MyApp  # Название
+  port: 8080   # Порт
+`
+
+	// 1. Парсинг с комментариями
+	var config map[string]interface{}
+	dec := yaml.NewDecoder(bytes.NewReader([]byte(yamlContent)))
+	dec.SetCommentRecursion(true)
+	
+	if err := dec.Decode(&config); err != nil {
+		panic(err)
+	}
+
+	// 2. Чтение существующих комментариев
+	comments := dec.CommentMap()
+	fmt.Println("Комментарий к app.name:", comments[yaml.Path("$.app.name")].Line)
+
+	// 3. Добавление нового поля с комментарием
+	config["app"].(map[string]interface{})["debug"] = true
+	newComment := &yaml.Comment{
+		Line: "  # Режим отладки",
+	}
+
+	// 4. Сериализация
+	out, err := yaml.MarshalWithOptions(config,
+		yaml.WithComments(comments),      // Старые комментарии
+		yaml.WithComment(newComment),    // Новый комментарий
+		yaml.Indent(2),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(out))
+}
+
