@@ -136,3 +136,52 @@ app:
 	fmt.Println(string(out))
 }
 
+
+
+
+
+package main
+
+import (
+	"fmt"
+	"github.com/goccy/go-yaml"
+)
+
+func main() {
+	yamlContent := `
+# Конфигурация приложения
+name: MyApp  # Название
+hosts:
+  - example.com  # Основной хост
+`
+
+	// 1. Парсим в map (сохраняет комментарии автоматически)
+	var config interface{}
+	err := yaml.UnmarshalWithOptions(
+		[]byte(yamlContent),
+		&config,
+		yaml.CommentToMap(true), // Ключевая опция!
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// 2. Модифицируем данные (пример добавления хоста)
+	if m, ok := config.(map[string]interface{}); ok {
+		hosts := m["hosts"].([]interface{})
+		hosts = append(hosts, "backup.example.com")
+		m["hosts"] = hosts
+	}
+
+	// 3. Сериализуем обратно с комментариями
+	out, err := yaml.MarshalWithOptions(
+		config,
+		yaml.Indent(2),
+		yaml.WithComment(), // Автоматически подтягивает комментарии из map
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(out))
+}
