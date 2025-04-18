@@ -48,3 +48,42 @@ read item
 
 poff REDCOM
 rm -f /etc/ppp/peers/REDCOM
+
+package main
+
+import (
+	"fmt"
+	"github.com/goccy/go-yaml"
+)
+
+func main() {
+	yamlContent := `
+# Конфигурация
+app:
+  name: MyApp  # Название
+  port: 8080
+`
+
+	// Чтение с сохранением комментариев
+	var node yaml.Node
+	err := yaml.Unmarshal([]byte(yamlContent), &node)
+	if err != nil {
+		panic(err)
+	}
+
+	// Изменение данных
+	var config map[string]interface{}
+	err = yaml.Unmarshal([]byte(yamlContent), &config)
+	if err != nil {
+		panic(err)
+	}
+	config["app"].(map[string]interface{})["port"] = 9090
+
+	// Запись обратно с комментариями
+	out, err := yaml.MarshalWithOptions(config, yaml.Indent(2), yaml.WithComment(node))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(out))
+}
