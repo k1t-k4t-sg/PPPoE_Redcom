@@ -185,3 +185,53 @@ hosts:
 
 	fmt.Println(string(out))
 }
+
+package main
+
+import (
+	"fmt"
+	"bytes"
+	"github.com/goccy/go-yaml"
+)
+
+func main() {
+	yamlContent := `
+# Конфигурация
+app:
+  name: MyApp  # Название
+  port: 8080
+`
+
+	// 1. Создаём декодер с поддержкой комментариев
+	dec := yaml.NewDecoder(bytes.NewReader([]byte(yamlContent)))
+	dec.CommentToMap(true)  // Включаем сбор комментариев
+
+	// 2. Парсим YAML
+	var config map[string]interface{}
+	err := dec.Decode(&config)
+	if err != nil {
+		panic(err)
+	}
+
+	// 3. Получаем карту комментариев
+	commentMap := dec.CommentMap()
+	for path, comment := range commentMap {
+		fmt.Printf("Путь: %s\nКомментарий: %+v\n", path, comment)
+	}
+
+	// 4. Модифицируем данные
+	config["app"].(map[string]interface{})["port"] = 9090
+
+	// 5. Сериализуем обратно с комментариями
+	out, err := yaml.MarshalWithOptions(
+		config,
+		yaml.WithComment(commentMap),  // Передаём комментарии
+		yaml.Indent(2),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Результат:")
+	fmt.Println(string(out))
+}
